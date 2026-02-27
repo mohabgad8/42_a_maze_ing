@@ -41,21 +41,74 @@ def parse_config(filename: str) -> dict[str, str]:
         raise OSError(f"Error: something went wrong with '{filename}'")
 
 
-def validate_config(parsed_config: dict[str, str]) -> bool:
+def valid_config(
+        parsed_config: dict[str, str]) -> dict[
+            str, str | bool | int | tuple[int, int]]:
     """
         Returns a bool based on the validation of parsed config.
+
+        Validation key points:
+        ----------------------
+        * Width and height aren't negatives. They are also within
+            the limits of the maze. Which means: not too small to be able
+            to contain the "42" logo.
     """
 
-    if not parse_config:
-        return False
+    MIN_WIDTH: int = 5
+    MIN_HEIGHT: int = 5
+
+    if not parsed_config:
+        raise ValueError("Error: Something went wrong with parsed config.")
+
+    validated_config: dict[
+        str, str | bool | int | tuple[int, int]] = {}
+    # Verify if width and height are correct
     try:
-        for key, value in parsed_config.items():
+        width: int = int(parsed_config['WIDTH'])
+        height: int = int(parsed_config['HEIGHT'])
 
-    except ValueError as e:
-        print(f"{e}")
-        return False
+        # In case 42 logo is 5x5
+        if width < MIN_WIDTH or height < MIN_HEIGHT:
+            raise ValueError("Error: Maze is too small fort the '42' logo.")
 
+        validated_config['WIDTH'] = width
+        validated_config['HEIGHT'] = height
 
+        def parse_coords()
+    except ValueError:
+        raise ValueError("Error: Measurements are incorrect !")
+    except KeyError:
+        raise KeyError("Error: Key doesn't exist")
+
+    # Get entry's coord.
+    try:
+        entry: str = parsed_config['ENTRY']
+        entry_x: int = int((entry.split(',', 1)[0]))
+        entry_y: int = int((entry.split(',', 1)[1]))
+    except ValueError:
+        raise ValueError("Error: entry's coordinates must be integers")
+
+    # Check if entry's coord. are within limits
+    if entry_x <= 0 or entry_y <= 0 or entry_x >= width or entry_y >= height:
+        raise ValueError("Error: Coordinates are incorrect !")
+
+    # Get exit's coord.
+    try:
+        end: str = parsed_config['EXIT']
+        end_x: int = int((end.split(',', 1)[0]))
+        end_y: int = int((end.split(',', 1)[1]))
+    except ValueError:
+        raise ValueError("Error: exit's coordinates must be integers")
+
+    # Check if exit's coord. are within limits
+    if end_x <= 0 or end_y <= 0 or end_x >= width or end_y >= height:
+        raise ValueError("Error: Coordinates are incorrect !")
+
+    # Check if entry and exit are similar
+    if entry == end:
+        raise ValueError("Error: Entry and Exit can't be identical !")
+
+    return validated_config
 
 
 if __name__ == "__main__":
