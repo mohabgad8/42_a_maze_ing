@@ -33,8 +33,8 @@ class MazeGenerator:
 
         self.rand_num_gen = random.Random(seed)
         self.grid: list[list[int]] = self.make_grid(width, height)
-        self.entry: tuple[int, int, int] = (0, 0, N)
-        self.exit: tuple[int, int, int] = (width - 1, height - 1, S)
+        self.entry: tuple[int, int] = (0, 0, N)
+        self.exit: tuple[int, int] = (width - 1, height - 1, S)
         self.blocked: set[tuple[int, int]] = set()
         self.place_42()
 
@@ -225,6 +225,8 @@ class MazeGenerator:
     def reset(self, attempt):
         self.grid = self.make_grid(self.width, self.height)
         self.rand_num_gen = random.Random(self.seed + attempt * 7979)
+        for (x, y) in self.blocked:
+            self.grid[y][x] = 15
 
     def generate(self, max_attempts=200) -> list[list[int]]:
         for attempt in range(max_attempts):
@@ -360,41 +362,18 @@ class MazeGenerator:
             errors.append("Connectivity error: reachable cells = "
                           f"{reachable} / {total}")
 
-    def check_border_wall(self, x: int, y: int, direction: int) -> bool:
-        ent_x, ent_y, ent_d = self.entry
-        exit_x, exit_y, exit_d = self.exit
-        if x == ent_x and y == ent_y and direction == ent_d:
-            if not self.has_wall(self.grid[y][x], direction):
-                return True
-            return False
-        elif x == exit_x and y == exit_y and direction == exit_d:
-            if not self.has_wall(self.grid[y][x], direction):
-                return True
-            return False
-        else:
-            if self.has_wall(self.grid[y][x], direction):
-                return True
-            return False
-
     def validate_outer_borders(self, errors: list[str]) -> None:
+        for x in range(self.width):
+            if not self.has_wall(self.grid[0][x], N):
+                errors.append(f"Missing north outer wall at ({x}, 0)")
+            if not self.has_wall(self.grid[self.height - 1][x], S):
+                errors.append("Missing south outer wall at "
+                              f"({x}, {self.height - 1})")
         for y in range(self.height):
-            for x in range(self.width):
-                if x == 0:
-                    if not self.check_border_wall(x, y, W):
-                        errors.append(f"Invalid outer wall at ({x}, {y}) "
-                                      "direction=W")
-                if x == self.width - 1:
-                    if not self.check_border_wall(x, y, E):
-                        errors.append(f"Invalid outer wall at ({x}, {y}) "
-                                      "direction=E")
-                if y == 0:
-                    if not self.check_border_wall(x, y, N):
-                        errors.append(f"Invalid outer wall at ({x}, {y}) "
-                                      "direction=N")
-                if y == self.height - 1:
-                    if not self.check_border_wall(x, y, S):
-                        errors.append(f"Invalid outer wall at ({x}, {y}) "
-                                      "direction=S")
+            if not self.has_wall(self.grid[y][0], W):
+                errors.append(f"Missing west outer wall at (0, {y})")
+            if not self.has_wall(self.grid[y][self.width - 1], E):
+                errors.append(f"Missing east outer wall at ({self.width - 1}, {y})")
 
     def validate_entry_exit(self, errors: list[str]) -> None:
         ent_x, ent_y, ent_d = self.entry
@@ -427,33 +406,141 @@ class MazeGenerator:
                     errors.append("Exit direction does not match "
                                   "its border position")
 
+    def validate_no_open_3x3(self, errors: list[str]) -> None:
+        for top_y in range(self.height - 2):
+            for top_x in range(self.width - 2):
+                if self.is_open_3x3(top_x, top_y):
+                    errors.append("Open 3x3 area detected at top-left "
+                                  f"({top_x},{top_y})")
+                    return
+
     def validate(self) -> list[str]:
         errors: list[str] = []
         self.validate_entry_exit(errors)
         self.validate_outer_borders(errors)
         self.validate_wall_consistency(errors)
-        # self.validate_no_open_3x3(errors)
+        self.validate_no_open_3x3(errors)
         self.validate_connectivity(errors)
         return errors
 
+    def write_output(self, filename: str) -> None:
+        path = self.path_to_letters(self.solve())
+        with open(filename, "w", encoding="utf-8") as file:
+            for line in self.grid_as_hex_lines():
+                file.write(line + "\n")
+            file.write("\n")
+            ent_x, ent_y, _ = self.entry
+            exit_x, exit_y, _ = self.exit
+            file.write(f"{ent_x},{ent_y}\n")
+            file.write(f"{exit_x},{exit_y}\n")
+            file.write(path + "\n")
+
+    def _count_open_edges(self) -> int:
+        edges = 0
+        for y in range(self.height):
+            for x in range(self.width):
+                if (x, y) in self.blocked:
+                    continue
+                if x + 1 < self.width and (x + 1, y) not in self.blocked:
+                    if not self.has_wall(self.grid[y][x], E):
+                        edges += 1
+                if y + 1 < self.height and (x, y + 1) not in self.blocked:
+                    if not self.has_wall(self.grid[y][x], S):
+                        edges += 1
+        return edges
+
+    def _is_perfect_maze(self) -> bool:
+        nodes = self.width * self.height - len(self.blocked)
+        edges = self._count_open_edges()
+        return edges == nodes - 1
+
+    def to_ascii(self, show_path: bool = False) -> str:
+        ent_x, ent_y, _ = self.entry
+        exit_x, exit_y, _ = self.exit
+
+        path_cells: set[tuple[int, int]] = set()
+        if show_path:
+            path_cells = self.path_cells()
+        lines: list[str] = []
+        top = "+"
+        for x in range(self.width):
+            if self.has_wall(self.grid[0][x], N):
+                top += "---" + "+"
+            else:
+                top += "   " + "+"
+        lines.append(top)
+
+        for y in range(self.height):
+            mid = ""
+            for x in range(self.width):
+                if self.has_wall(self.grid[y][x], W):
+                    mid += "|"
+                else:
+                    mid += " "
+                content = "   "
+                if (x, y) in self.blocked:
+                    content = "###"
+                elif (x, y) == (ent_x, ent_y):
+                    content = " S "
+                elif (x, y) == (exit_x, exit_y):
+                    content = " E " 
+                elif show_path and (x, y) in path_cells:
+                    content = " . "
+                mid += content
+            if self.has_wall(self.grid[y][self.width - 1], E):
+                mid += "|"
+            else:
+                mid += " "
+            lines.append(mid)
+            bot = "+"
+            for x in range(self.width):
+                if self.has_wall(self.grid[y][x], S):
+                    bot += "---" + "+"
+                else:
+                    bot += "   " + "+"
+            lines.append(bot)
+        return "\n".join(lines)
+
+    def path_cells(self) -> set[tuple[int, int]]:
+        cells: set[tuple[int, int]] = set()
+        x, y, _ = self.entry
+        cells.add((x, y))
+        for d in self.solve():
+            x += DIR_X[d]
+            y += DIR_Y[d]
+            cells.add((x, y))
+        return cells
+
 
 if __name__ == "__main__":
-    w, h = 15, 10
+    w, h = 20, 10
     seed = 42
 
-    maze = MazeGenerator(w, h, seed=seed)
-    print(len(maze.blocked))
+    show_path = False
+    maze = MazeGenerator(w, h, seed)
     maze.generate()
-    maze.add_default_entrance_exit()
 
-    errors = maze.validate()
-    if errors:
-        print(" Maze invalid:")
-        for err in errors:
-            print(f"- {err}")
+    import os
+    os.system("clear")
+    while True:
+        print("\n" * 2)
+        print("Seed:", seed)
+        print(maze.to_ascii(show_path=show_path))
 
-    print(f" Maze valid (w={w}, h={h}, seed={seed})\n")
-    maze.print_grid_hex()
+        print("\n[r] regenerate\n[p] toggle path \n[q] quit\n")
+        choice = input("> ").strip().lower()
 
-    path_dirs = maze.solve()
-    print("\nPath:", maze.path_to_letters(path_dirs))
+        if choice == "q":
+            print("Bye 👋")
+            break
+
+        elif choice == "r":
+            seed += 1
+            maze = MazeGenerator(w, h, seed)
+            maze.generate()
+
+        elif choice == "p":
+            show_path = not show_path
+
+        else:
+            print("Unknown command")
