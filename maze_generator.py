@@ -11,10 +11,18 @@ DIR_X = {N: 0, E: 1, S: 0, W: -1}
 DIR_Y = {N: -1, E: 0, S: 1, W: 0}
 # aller à l'est: (x + 1, y)
 # aller au nord: (x, y - 1)
-opposite_wall = {N: S, E: W, S: N, W: E}
+OPP_WALL = {N: S, E: W, S: N, W: E}
 
 
 class MazeGenerator:
+    PATTERN_42 = [
+        [1, 0, 0, 0, 1, 1, 1],
+        [1, 0, 0, 0, 0, 0, 1],
+        [1, 1, 1, 0, 1, 1, 1],
+        [0, 0, 1, 0, 1, 0, 0],
+        [0, 0, 1, 0, 1, 1, 1]
+    ]
+
     def __init__(self, width: int, height: int, seed: int = 0,
                  start_x: int = 0, start_y: int = 0):
         self.width = width
@@ -27,6 +35,8 @@ class MazeGenerator:
         self.grid: list[list[int]] = self.make_grid(width, height)
         self.entry: tuple[int, int, int] = (0, 0, N)
         self.exit: tuple[int, int, int] = (width - 1, height - 1, S)
+        self.blocked: set[tuple[int, int]] = set()
+        self.place_42()
 
     @staticmethod
     def has_wall(cell: int, d: int) -> bool:
@@ -82,6 +92,8 @@ class MazeGenerator:
                 continue
             if visited[new_y][new_x]:
                 continue
+            if (new_x, new_y) in self.blocked:
+                continue
             neighbors.append((new_x, new_y))
         return neighbors
 
@@ -106,7 +118,7 @@ class MazeGenerator:
         direction = self.get_direction_between(x, y, new_x, new_y)
         self.grid[y][x] = self.open_wall(self.grid[y][x], direction)
         self.grid[new_y][new_x] = self.open_wall(self.grid[new_y][new_x],
-                                                 opposite_wall[direction])
+                                                 OPP_WALL[direction])
 
     def wall_open_hor(self, x: int, y: int) -> bool:
         return not self.has_wall(self.grid[y][x], E)
@@ -136,7 +148,7 @@ class MazeGenerator:
         old_b = self.grid[new_y][new_x]
         self.grid[y][x] = self.open_wall(self.grid[y][x], direction)
         self.grid[new_y][new_x] = self.open_wall(self.grid[new_y][new_x],
-                                                 opposite_wall[direction])
+                                                 OPP_WALL[direction])
         min_x = min(x, new_x)
         min_y = min(y, new_y)
 
@@ -152,11 +164,37 @@ class MazeGenerator:
         self.grid[new_y][new_x] = old_b
         return created
 
+    # ========== 42 =========
+
+    def place_42(self):
+        self.blocked.clear()
+        pattern_width = len(self.PATTERN_42[0])
+        pattern_height = len(self.PATTERN_42)
+        if self.width < pattern_width + 2 or self.height < pattern_height + 2:
+            print("Warning: maze too small to place 42 pattern, skipping.")
+            return 0
+        top_x = (self.width - pattern_width) // 2
+        top_y = (self.height - pattern_height) // 2
+        for dy in range(pattern_height):
+            for dx in range(pattern_width):
+                if self.PATTERN_42[dy][dx] == 1:
+                    x = top_x + dx
+                    y = top_y + dy
+                    self.blocked.add((x, y))
+                    self.grid[y][x] = 15
+        return len(self.blocked)
+
+    # ========= 42 =========
+
     def generate_once(self) -> bool:
         visited = self.init_visited(self.width, self.height)
+        for x, y in self.blocked:
+            visited[y][x] = True
         if not self.in_bounds(self.start_x, self.start_y, self.width,
                               self.height):
             raise ValueError("Start position out of bounds")
+        if (self.start_x, self.start_y) in self.blocked:
+            raise ValueError("Start point cannot be in 42 motif")
 
         stack: list[tuple[int, int]] = [(self.start_x, self.start_y)]
         visited[self.start_y][self.start_x] = True
@@ -193,7 +231,7 @@ class MazeGenerator:
             self.reset(attempt)
             if self.generate_once():
                 return self.grid
-            raise RuntimeError("Generation failed after retries")
+        raise RuntimeError("Generation failed after retries")
 
     def open_to_outside(self, x: int, y: int, d: int) -> None:
         if not self.in_bounds(x, y, self.width, self.height):
@@ -235,6 +273,8 @@ class MazeGenerator:
                 if not (0 <= new_x < self.width and 0 <= new_y < self.height):
                     continue
                 if visited[new_y][new_x]:
+                    continue
+                if (new_x, new_y) in self.blocked:
                     continue
                 visited[new_y][new_x] = True
                 parent[(new_x, new_y)] = (x, y, d)
@@ -306,6 +346,8 @@ class MazeGenerator:
                     continue
                 if visited[new_y][new_x]:
                     continue
+                if (new_x, new_y) in self.blocked:
+                    continue
                 visited[new_y][new_x] = True
                 count += 1
                 queue.append((new_x, new_y))
@@ -313,7 +355,7 @@ class MazeGenerator:
 
     def validate_connectivity(self, errors: list[str]) -> None:
         reachable = self.reachable_count_from_entry()
-        total = self.height * self.width
+        total = self.height * self.width - len(self.blocked)
         if reachable != total:
             errors.append("Connectivity error: reachable cells = "
                           f"{reachable} / {total}")
@@ -396,21 +438,21 @@ class MazeGenerator:
 
 
 if __name__ == "__main__":
-    w, h = 20, 10
+    w, h = 15, 10
     seed = 42
 
     maze = MazeGenerator(w, h, seed=seed)
-
+    print(len(maze.blocked))
     maze.generate()
     maze.add_default_entrance_exit()
 
     errors = maze.validate()
     if errors:
-        print("❌ Maze invalid:")
+        print(" Maze invalid:")
         for err in errors:
             print(f"- {err}")
 
-    print(f"✅ Maze valid (w={w}, h={h}, seed={seed})\n")
+    print(f" Maze valid (w={w}, h={h}, seed={seed})\n")
     maze.print_grid_hex()
 
     path_dirs = maze.solve()
