@@ -33,8 +33,8 @@ class MazeGenerator:
 
         self.rand_num_gen = random.Random(seed)
         self.grid: list[list[int]] = self.make_grid(width, height)
-        self.entry: tuple[int, int] = (0, 0, N)
-        self.exit: tuple[int, int] = (width - 1, height - 1, S)
+        self.entry: tuple[int, int] = (0, 0)
+        self.exit: tuple[int, int] = (width - 1, height - 1)
         self.blocked: set[tuple[int, int]] = set()
         self.place_42()
 
@@ -232,23 +232,19 @@ class MazeGenerator:
         for attempt in range(max_attempts):
             self.reset(attempt)
             if self.generate_once():
+                errors = self.validate()
+                if errors:
+                    raise RuntimeError("Generated maze is invalid:\n"
+                                       "\n".join(errors))
+                if not self._is_perfect_maze():
+                    raise RuntimeError("Generated maze is not perfect "
+                                       "(should be a spanning tree).")
                 return self.grid
         raise RuntimeError("Generation failed after retries")
 
-    def open_to_outside(self, x: int, y: int, d: int) -> None:
-        if not self.in_bounds(x, y, self.width, self.height):
-            raise ValueError("Cell out of bounds")
-        self.grid[y][x] = self.open_wall(self.grid[y][x], d)
-
-    def add_default_entrance_exit(self) -> None:
-        ent_x, ent_y, ent_d = self.entry
-        exit_x, exit_y, exit_d = self.exit
-        self.open_to_outside(ent_x, ent_y, ent_d)
-        self.open_to_outside(exit_x, exit_y, exit_d)
-
     def solve(self) -> list[int]:
-        start_x, start_y, _ = self.entry
-        end_x, end_y, _ = self.exit
+        start_x, start_y = self.entry
+        end_x, end_y = self.exit
         queue: Deque[tuple[int, int]] = deque()
         queue.append((start_x, start_y))
         visited: list[list[bool]] = self.init_visited(self.width,
@@ -330,7 +326,7 @@ class MazeGenerator:
             errors.append("Inconsistent walls between adjacent cells")
 
     def reachable_count_from_entry(self) -> int:
-        start_x, start_y, _ = self.entry
+        start_x, start_y = self.entry
         count = 1
         queue: Deque[tuple[int, int]] = deque()
         queue.append((start_x, start_y))
@@ -373,38 +369,26 @@ class MazeGenerator:
             if not self.has_wall(self.grid[y][0], W):
                 errors.append(f"Missing west outer wall at (0, {y})")
             if not self.has_wall(self.grid[y][self.width - 1], E):
-                errors.append(f"Missing east outer wall at ({self.width - 1}, {y})")
+                errors.append(f"Missing east outer wall at ({self.width - 1}, "
+                              f"{y})")
 
     def validate_entry_exit(self, errors: list[str]) -> None:
-        ent_x, ent_y, ent_d = self.entry
-        exit_x, exit_y, exit_d = self.exit
+        ent_x, ent_y = self.entry
+        exit_x, exit_y = self.exit
         entry_ok = self.in_bounds(ent_x, ent_y, self.width, self.height)
         exit_ok = self.in_bounds(exit_x, exit_y, self.width, self.height)
         if not entry_ok:
             errors.append("Entry coordinates out of bounds")
+            return
         if not exit_ok:
             errors.append("Exit coordinates out of bounds")
-        if entry_ok and exit_ok:
-            if (ent_x, ent_y) == (exit_x, exit_y):
-                errors.append("Entry and exit must be different cells")
-            if ent_d not in (N, E, S, W):
-                errors.append("Entry direction is invalid")
-            if exit_d not in (N, E, S, W):
-                errors.append("Exit direction is invalid")
-            if ent_d in (N, E, S, W):
-                if not ((ent_y == 0 and ent_d == N)
-                        or (ent_y == self.height - 1 and ent_d == S)
-                        or (ent_x == 0 and ent_d == W)
-                        or (ent_x == self.width - 1 and ent_d == E)):
-                    errors.append("Entry direction does not match "
-                                  "its border position")
-            if exit_d in (N, E, S, W):
-                if not ((exit_y == 0 and exit_d == N)
-                        or (exit_y == self.height - 1 and exit_d == S)
-                        or (exit_x == 0 and exit_d == W)
-                        or (exit_x == self.width - 1 and exit_d == E)):
-                    errors.append("Exit direction does not match "
-                                  "its border position")
+            return
+        if (ent_x, ent_y) in self.blocked:
+            errors.append("Entry cannot be inside 42 motif")
+        if (exit_x, exit_y) in self.blocked:
+            errors.append("Exit cannot be inside 42 motif")
+        if (ent_x, ent_y) == (exit_x, exit_y):
+            errors.append("Entry and exit must be different cells")
 
     def validate_no_open_3x3(self, errors: list[str]) -> None:
         for top_y in range(self.height - 2):
@@ -429,8 +413,8 @@ class MazeGenerator:
             for line in self.grid_as_hex_lines():
                 file.write(line + "\n")
             file.write("\n")
-            ent_x, ent_y, _ = self.entry
-            exit_x, exit_y, _ = self.exit
+            ent_x, ent_y = self.entry
+            exit_x, exit_y = self.exit
             file.write(f"{ent_x},{ent_y}\n")
             file.write(f"{exit_x},{exit_y}\n")
             file.write(path + "\n")
@@ -455,8 +439,8 @@ class MazeGenerator:
         return edges == nodes - 1
 
     def to_ascii(self, show_path: bool = False) -> str:
-        ent_x, ent_y, _ = self.entry
-        exit_x, exit_y, _ = self.exit
+        ent_x, ent_y = self.entry
+        exit_x, exit_y = self.exit
 
         path_cells: set[tuple[int, int]] = set()
         if show_path:
@@ -483,7 +467,7 @@ class MazeGenerator:
                 elif (x, y) == (ent_x, ent_y):
                     content = " S "
                 elif (x, y) == (exit_x, exit_y):
-                    content = " E " 
+                    content = " E "
                 elif show_path and (x, y) in path_cells:
                     content = " . "
                 mid += content
@@ -503,44 +487,10 @@ class MazeGenerator:
 
     def path_cells(self) -> set[tuple[int, int]]:
         cells: set[tuple[int, int]] = set()
-        x, y, _ = self.entry
+        x, y = self.entry
         cells.add((x, y))
         for d in self.solve():
             x += DIR_X[d]
             y += DIR_Y[d]
             cells.add((x, y))
         return cells
-
-
-if __name__ == "__main__":
-    w, h = 20, 10
-    seed = 42
-
-    show_path = False
-    maze = MazeGenerator(w, h, seed)
-    maze.generate()
-
-    import os
-    os.system("clear")
-    while True:
-        print("\n" * 2)
-        print("Seed:", seed)
-        print(maze.to_ascii(show_path=show_path))
-
-        print("\n[r] regenerate\n[p] toggle path \n[q] quit\n")
-        choice = input("> ").strip().lower()
-
-        if choice == "q":
-            print("Bye 👋")
-            break
-
-        elif choice == "r":
-            seed += 1
-            maze = MazeGenerator(w, h, seed)
-            maze.generate()
-
-        elif choice == "p":
-            show_path = not show_path
-
-        else:
-            print("Unknown command")
