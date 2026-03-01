@@ -152,7 +152,7 @@ class MazeGenerator:
         self.grid[new_y][new_x] = old_b
         return created
 
-    def generate(self) -> list[list[int]]:
+    def generate_once(self) -> bool:
         visited = self.init_visited(self.width, self.height)
         if not self.in_bounds(self.start_x, self.start_y, self.width,
                               self.height):
@@ -178,7 +178,22 @@ class MazeGenerator:
             self.open_between(x, y, new_x, new_y)
             visited[new_y][new_x] = True
             stack.append((new_x, new_y))
-        return self.grid
+
+        for row in visited:
+            if not all(row):
+                return False
+        return True
+
+    def reset(self, attempt):
+        self.grid = self.make_grid(self.width, self.height)
+        self.rand_num_gen = random.Random(self.seed + attempt * 7979)
+
+    def generate(self, max_attempts=200) -> list[list[int]]:
+        for attempt in range(max_attempts):
+            self.reset(attempt)
+            if self.generate_once():
+                return self.grid
+            raise RuntimeError("Generation failed after retries")
 
     def open_to_outside(self, x: int, y: int, d: int) -> None:
         if not self.in_bounds(x, y, self.width, self.height):
