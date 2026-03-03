@@ -1,3 +1,5 @@
+"""Diplay in ascii."""
+
 from .maze_utils import N, E, S, W, has_wall
 from typing import Optional
 
@@ -8,6 +10,20 @@ def to_ascii(grid: list[list[int]],
              exit: tuple[int, int],
              show_path: bool = False,
              path_cells: Optional[set[tuple[int, int]]] = None,) -> str:
+    """Write the maze and path en ascii.
+
+    Args:
+        grid (list[list[int]]): maze
+        blocked (set[tuple[int, int]]): the pattern 42
+        entry (tuple[int, int]): entry of the maze
+        exit (tuple[int, int]): exit of the maze
+        show_path (bool, optional): if we show the path. Defaults to False.
+        path_cells (Optional[set[tuple[int, int]]], optional):
+            the coordinates of the path. Defaults to None.
+
+    Returns:
+        str: maze convert in str
+    """
     width = len(grid[0])
     height = len(grid)
     ent_x, ent_y = entry

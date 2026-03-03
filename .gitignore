@@ -2,3 +2,4 @@
 dist/
 test_error.py
 src/mazegen_42.egg-info
+tests/

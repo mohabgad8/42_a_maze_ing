@@ -1,14 +1,13 @@
+"""Utils funtions."""
+
 N, E, S, W = 0, 1, 2, 3
-# comment on se déplace dans la grille
 DIR_X = {N: 0, E: 1, S: 0, W: -1}
 DIR_Y = {N: -1, E: 0, S: 1, W: 0}
-# aller à l'est: (x + 1, y)
-# aller au nord: (x, y - 1)
 OPP_WALL = {N: S, E: W, S: N, W: E}
 
 
 def has_wall(cell: int, d: int) -> bool:
-    """check if cell has wall
+    """Check if cell has wall.
 
     Args:
         cell (int): coordonnees of the cell
@@ -21,7 +20,7 @@ def has_wall(cell: int, d: int) -> bool:
 
 
 def open_wall(cell: int, d: int) -> int:
-    """open a wall of a cell
+    """Open a wall of a cell.
 
     Args:
         cell (int): coordonnees of the cell
@@ -37,7 +36,7 @@ def open_wall(cell: int, d: int) -> int:
 
 
 def get_direction_between(x: int, y: int, new_x: int, new_y: int) -> int:
-    """give the direction  between 2 cells
+    """Give the direction  between 2 cells.
 
     Args:
         x (int): x of the cell
@@ -56,11 +55,11 @@ def get_direction_between(x: int, y: int, new_x: int, new_y: int) -> int:
 
     if move_x == 1 and move_y == 0:
         return E
-    elif move_x == -1 and move_y == 0:
+    if move_x == -1 and move_y == 0:
         return W
-    elif move_x == 0 and move_y == 1:
+    if move_x == 0 and move_y == 1:
         return S
-    elif move_x == 0 and move_y == -1:
+    if move_x == 0 and move_y == -1:
         return N
-    else:
-        raise ValueError("Cells are not adjacent")
+    raise ValueError("Cells are not adjacent")
+

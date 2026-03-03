@@ -1,3 +1,5 @@
+"""solve the maze."""
+
 from collections import deque
 from typing import Deque
 
@@ -5,7 +7,7 @@ from .maze_utils import N, E, S, W, DIR_X, DIR_Y, has_wall
 
 
 def init_visited(width: int, height: int) -> list[list[bool]]:
-    """initialize cell not visited
+    """Initialize cell not visited.
 
     Args:
         width (int): width of the grid
@@ -27,6 +29,17 @@ def solve(grid: list[list[int]],
           blocked: set[tuple[int, int]],
           entry: tuple[int, int],
           exit: tuple[int, int],) -> list[int]:
+    """Solve the maze with bfs.
+
+    Args:
+        grid (list[list[int]]): maze
+        blocked (set[tuple[int, int]]): pattern 42
+        entry (tuple[int, int]): entry of maze
+        exit (tuple[int, int]): exit of maze
+
+    Returns:
+        list[int]: the path from entry to exit
+    """
     width = len(grid[0])
     height = len(grid)
     start_x, start_y = entry
@@ -65,31 +78,20 @@ def solve(grid: list[list[int]],
     return []
 
 
-def reachable_count_from_entry(grid: list[list[int]],
-                               blocked: set[tuple[int, int]],
-                               entry: tuple[int, int]) -> int:
-    width = len(grid[0])
-    height = len(grid)
-    start_x, start_y = entry
-    count = 1
-    queue: Deque[tuple[int, int]] = deque()
-    queue.append((start_x, start_y))
-    visited: list[list[bool]] = init_visited(width, height)
-    visited[start_y][start_x] = True
-    while queue:
-        x, y = queue.popleft()
-        for d in (N, E, S, W):
-            if has_wall(grid[y][x], d):
-                continue
-            new_x = x + DIR_X[d]
-            new_y = y + DIR_Y[d]
-            if not (0 <= new_x < width and 0 <= new_y < height):
-                continue
-            if visited[new_y][new_x]:
-                continue
-            if (new_x, new_y) in blocked:
-                continue
-            visited[new_y][new_x] = True
-            count += 1
-            queue.append((new_x, new_y))
-    return count
+def path_to_cells(entry: tuple[int, int], path: list[int]) -> set[tuple[int]]:
+    """Convert the path in coordinates.
+
+    Args:
+        entry (_type_): _description_
+        path (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
+    x, y = entry
+    cells = {(x, y)}
+    for d in path:
+        x += DIR_X[d]
+        y += DIR_Y[d]
+        cells.add((x, y))
+    return cells

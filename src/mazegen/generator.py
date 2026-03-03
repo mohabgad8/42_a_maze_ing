@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+"""Generate the maze."""
+
 
 import random
 from typing import Optional
@@ -10,6 +12,18 @@ from .maze_utils import (
 
 
 class MazeGenerator:
+    """Generate a maze.
+
+    Raises:
+        if start not in maze:
+        if start in block:
+        raise ValueError("incorrect value to generate maze")
+        raise ValueError("Start point cannot be in 42 motif")
+        RuntimeError: Generated maze is invalid
+        RuntimeError: Generated maze is not perfect
+        RuntimeError: Generation failed after retries
+    """
+
     PATTERN_42 = [
         [1, 0, 0, 0, 1, 1, 1],
         [1, 0, 0, 0, 0, 0, 1],
@@ -21,8 +35,9 @@ class MazeGenerator:
     def __init__(self, width: int, height: int, seed: int = 0,
                  entry: Optional[tuple[int, int]] = None,
                  exit: Optional[tuple[int, int]] = None,
-                 perfect: bool = False, start_x: int = 0, start_y: int = 0):
-        """initialize class
+                 perfect: bool = False, start_x: int = 0,
+                 start_y: int = 0) -> None:
+        """Initialize class.
 
         Args:
             width (int): width of the maze
@@ -47,14 +62,39 @@ class MazeGenerator:
         self.start_x = start_x
         self.start_y = start_y
 
+        self.validate_params() 
+
         self.rand_num_gen = random.Random(seed)
         self.grid: list[list[int]] = self.make_grid(width, height)
         self.blocked: set[tuple[int, int]] = set()
         self.place_42()
 
-    @staticmethod
-    def make_grid(width: int, height: int) -> list[list[int]]:
-        """make the grid
+    def validate_params(self) -> None:
+        """Validate constructor parameters."""
+
+        if not isinstance(self.width, int) or not isinstance(self.height, int):
+            raise TypeError("WIDTH and HEIGHT must be integers")
+
+        if self.width <= 0 or self.height <= 0:
+            raise ValueError(
+                f"WIDTH and HEIGHT must be > 0 "
+                f"(got width={self.width}, height={self.height})"
+            )
+
+        for name, point in (
+            ("ENTRY", self.entry),
+            ("EXIT", self.exit),
+            ("START", (self.start_x, self.start_y)),
+        ):
+            x, y = point
+            if not (0 <= x < self.width and 0 <= y < self.height):
+                raise ValueError(f"{name} out of bounds: {point}")
+
+        if self.entry == self.exit:
+            raise ValueError("ENTRY and EXIT must be different")
+
+    def make_grid(self) -> list[list[int]]:
+        """Make the grid.
 
         Args:
             width (int): width of the grid
@@ -64,15 +104,15 @@ class MazeGenerator:
             list[list[int]]: grid in 2D
         """
         grid: list[list[int]] = []
-        for y in range(height):
+        for y in range(self.height):
             row: list[int] = []
-            for x in range(width):
+            for x in range(self.width):
                 row.append(15)
             grid.append(row)
         return grid
 
     def in_bounds(self, x: int, y: int) -> bool:
-        """check in the cell is in the maze
+        """Check in the cell is in the maze.
 
         Args:
             x (int): x of the cell
@@ -96,7 +136,7 @@ class MazeGenerator:
     def unvisited_neighbors(self, x: int, y: int,
                             visited: list[list[bool]]
                             ) -> list[tuple[int, int]]:
-        """create list of unvisited neighbors
+        """Create list of unvisited neighbors.
 
         Args:
             x (int): x of the cell
@@ -121,7 +161,7 @@ class MazeGenerator:
 
     def open_between(self, x: int, y: int,
                      new_x: int, new_y: int) -> None:
-        """open the walls between 2 cells
+        """Open the walls between 2 cells.
 
         Args:
             x (int): x of the cell
@@ -135,7 +175,7 @@ class MazeGenerator:
                                             OPP_WALL[direction])
 
     def init_visited(self, width: int, height: int) -> list[list[bool]]:
-        """initialize cell not visited
+        """Initialize cell not visited.
 
         Args:
             width (int): width of the grid
@@ -153,7 +193,7 @@ class MazeGenerator:
         return visited
 
     def wall_open_hor(self, x: int, y: int) -> bool:
-        """check if a cell is open as it East side
+        """Check if a cell is open as it East side.
 
         Args:
             x (int): x of the cell
@@ -165,7 +205,7 @@ class MazeGenerator:
         return not has_wall(self.grid[y][x], E)
 
     def wall_open_ver(self, x: int, y: int) -> bool:
-        """check if a cell is open as it South side
+        """Check if a cell is open as it South side.
 
         Args:
             x (int): x of the cell
@@ -177,7 +217,7 @@ class MazeGenerator:
         return not has_wall(self.grid[y][x], S)
 
     def is_open_3x3(self, top_x: int, top_y: int) -> bool:
-        """check if open 3x3
+        """Check if open 3x3.
 
         Args:
             top_x (int): start x for check
@@ -202,7 +242,7 @@ class MazeGenerator:
 
     def would_create_open_3x3(self, x: int, y: int, new_x: int, new_y: int
                               ) -> bool:
-        """check if action would create 3x3
+        """Check if action would create 3x3.
 
         Args:
             x (int): x of the cell
@@ -234,10 +274,8 @@ class MazeGenerator:
         self.grid[new_y][new_x] = old_b
         return created
 
-    # ========== 42 =========
-
     def place_42(self) -> int:
-        """place the 42 at center and add it to blocked set
+        """Place the 42 at center and add it to blocked set.
 
         Returns:
             int: number af case of the pattern
@@ -259,10 +297,8 @@ class MazeGenerator:
                     self.grid[y][x] = 15
         return len(self.blocked)
 
-    # ========= 42 =========
-
     def generate_once(self) -> bool:
-        """try generate maze
+        """Try generate maze.
 
         Raises:
             ValueError: raise if start cell not in maze
@@ -274,11 +310,10 @@ class MazeGenerator:
         visited = self.init_visited(self.width, self.height)
         for x, y in self.blocked:
             visited[y][x] = True
-        if not self.in_bounds(self.start_x, self.start_y):
-            raise ValueError("Start position out of bounds")
-        if (self.start_x, self.start_y) in self.blocked:
-            raise ValueError("Start point cannot be in 42 motif")
-
+            if not self.in_bounds(self.start_x, self.start_y):
+                raise ValueError("incorrect value to generate maze")
+            if (self.start_x, self.start_y) in self.blocked:
+                raise ValueError("Start point cannot be in 42 motif")
         stack: list[tuple[int, int]] = [(self.start_x, self.start_y)]
         visited[self.start_y][self.start_x] = True
 
@@ -306,7 +341,7 @@ class MazeGenerator:
         return True
 
     def reset(self, attempt: int) -> None:
-        """reset the grid after trying to create maze
+        """Reset the grid after trying to create maze.
 
         Args:
             attempt (int): the number of the try
@@ -317,6 +352,7 @@ class MazeGenerator:
             self.grid[y][x] = 15
 
     def _add_extra_connections(self) -> None:
+        """Add connections to create imperfect maze."""
         opened = 0
         cells_to_open = self.width * self.height // 10
         cells = [
@@ -342,6 +378,20 @@ class MazeGenerator:
                     opened += 1
 
     def generate(self, max_attempts=200) -> list[list[int]]:
+        """Generate maze.
+
+        Args:
+            (max_attempts (int, optional): max tries to build maze.
+            Defaults to 200.)
+
+        Raises:
+            RuntimeError: generate maze failed
+            RuntimeError: generate maze failed
+            RuntimeError: generate maze failed after retries
+
+        Returns:
+            list[list[int]]: maze
+        """
         for attempt in range(max_attempts):
             self.reset(attempt)
             if self.generate_once():
@@ -354,17 +404,6 @@ class MazeGenerator:
                                        "\n".join(errors))
                 if self.perfect and not is_perfect_maze(self.grid,
                                                         self.blocked):
-                    raise RuntimeError("Generated maze is not perfect "
-                                       "(should be a spanning tree).")
+                    raise RuntimeError("Generated maze is not perfect.")
                 return self.grid
         raise RuntimeError("Generation failed after retries")
-
-    def path_cells(self) -> set[tuple[int, int]]:
-        cells: set[tuple[int, int]] = set()
-        x, y = self.entry
-        cells.add((x, y))
-        for d in self.solve():
-            x += DIR_X[d]
-            y += DIR_Y[d]
-            cells.add((x, y))
-        return cells
