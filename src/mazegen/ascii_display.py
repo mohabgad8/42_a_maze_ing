@@ -9,7 +9,8 @@ def to_ascii(grid: list[list[int]],
              entry: tuple[int, int],
              exit: tuple[int, int],
              show_path: bool = False,
-             path_cells: Optional[set[tuple[int, int]]] = None,) -> str:
+             path_cells: Optional[set[tuple[int, int]]] = None,
+             design: dict[str, str] = None) -> str:
     """Write the maze and path en ascii.
 
     Args:
@@ -30,41 +31,41 @@ def to_ascii(grid: list[list[int]],
     exit_x, exit_y = exit
 
     lines: list[str] = []
-    top = "+"
+    top = design["corner"]
     for x in range(width):
         if has_wall(grid[0][x], N):
-            top += "---" + "+"
+            top += design["ver_wall"] + design["corner"]
         else:
-            top += "   " + "+"
+            top += "   " + design["corner"]
     lines.append(top)
 
     for y in range(height):
         mid = ""
         for x in range(width):
             if has_wall(grid[y][x], W):
-                mid += "|"
+                mid += design["hor_wall"]
             else:
                 mid += " "
             content = "   "
             if (x, y) in blocked:
-                content = "###"
+                content = design["pattern"]
             elif (x, y) == (ent_x, ent_y):
-                content = " S "
+                content = design["Start"]
             elif (x, y) == (exit_x, exit_y):
-                content = " E "
+                content = design["Exit"]
             elif show_path and (x, y) in path_cells:
-                content = " . "
+                content = design["path"]
             mid += content
         if has_wall(grid[y][width - 1], E):
-            mid += "|"
+            mid += design["hor_wall"]
         else:
             mid += " "
         lines.append(mid)
-        bot = "+"
+        bot = design["corner"]
         for x in range(width):
             if has_wall(grid[y][x], S):
-                bot += "---" + "+"
+                bot += design["ver_wall"] + design["corner"]
             else:
-                bot += "   " + "+"
+                bot += "   " + design["corner"]
         lines.append(bot)
     return "\n".join(lines)

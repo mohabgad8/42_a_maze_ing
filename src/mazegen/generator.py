@@ -65,7 +65,7 @@ class MazeGenerator:
         self.validate_params() 
 
         self.rand_num_gen = random.Random(seed)
-        self.grid: list[list[int]] = self.make_grid(width, height)
+        self.grid: list[list[int]] = self.make_grid()
         self.blocked: set[tuple[int, int]] = set()
         self.place_42()
 
@@ -346,7 +346,7 @@ class MazeGenerator:
         Args:
             attempt (int): the number of the try
         """
-        self.grid = self.make_grid(self.width, self.height)
+        self.grid = self.make_grid()
         self.rand_num_gen = random.Random(self.seed + attempt * 7979)
         for (x, y) in self.blocked:
             self.grid[y][x] = 15
