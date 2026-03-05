@@ -85,21 +85,26 @@ def animate_path(
 
     displayed_cells: set[tuple[(int, int)]] = set()
 
-    for step in path_ordered:
-        displayed_cells.add(step)
+    print("\033[?25l", end="")
 
-        result = to_ascii(
-            grid,
-            blocked,
-            entry,
-            exit_pt,
-            True,
-            displayed_cells,
-            design
-        )
+    try:
+        for step in path_ordered:
+            displayed_cells.add(step)
 
-        print(result)
+            result = to_ascii(
+                grid,
+                blocked,
+                entry,
+                exit_pt,
+                True,
+                displayed_cells,
+                design
+            )
 
-        n_lines = result.count("\n") + 1
-        print(f"\033[{n_lines}A", end="", flush=True)
-        time.sleep(0.05)
+            print(result)
+
+            n_lines = result.count("\n") + 1
+            print(f"\033[{n_lines}A", end="", flush=True)
+            time.sleep(0.05)
+    finally:
+        print("\033[?25h", end="")
