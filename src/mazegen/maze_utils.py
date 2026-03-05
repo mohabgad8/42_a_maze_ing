@@ -62,4 +62,3 @@ def get_direction_between(x: int, y: int, new_x: int, new_y: int) -> int:
     if move_x == 0 and move_y == -1:
         return N
     raise ValueError("Cells are not adjacent")
-
