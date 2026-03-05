@@ -106,6 +106,6 @@ def animate_path(
 
             n_lines = result.count("\n") + 1
             print(f"\033[{n_lines}A", end="", flush=True)
-            time.sleep(0.05)
+            time.sleep(0.04)
     finally:
         print("\033[?25h", end="", flush=True)
