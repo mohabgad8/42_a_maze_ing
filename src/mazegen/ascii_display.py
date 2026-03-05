@@ -8,9 +8,10 @@ def to_ascii(grid: list[list[int]],
              blocked: set[tuple[int, int]],
              entry: tuple[int, int],
              exit: tuple[int, int],
+             design: dict[str, str],
              show_path: bool = False,
-             path_cells: Optional[set[tuple[int, int]]] = None,
-             design: dict[str, str] = None) -> str:
+             path_cells: Optional[set[tuple[int, int]]] = None
+             ) -> str:
     """Write the maze and path en ascii.
 
     Args:
@@ -53,7 +54,7 @@ def to_ascii(grid: list[list[int]],
                 content = design["Start"]
             elif (x, y) == (exit_x, exit_y):
                 content = design["Exit"]
-            elif show_path and (x, y) in path_cells:
+            elif show_path and path_cells is not None and (x, y) in path_cells:
                 content = design["path"]
             mid += content
         if has_wall(grid[y][width - 1], E):
@@ -76,8 +77,8 @@ def animate_path(
     blocked: set[tuple[int, int]],
     entry: tuple[int, int],
     exit_pt: tuple[int, int],
-    path_ordered: Optional[list[tuple[int, int]]] = None,
-    design: dict[str, str] = None
+    design: dict[str, str],
+    path_ordered: list[tuple[int, int]]
 ) -> None:
     """
     Creates an animation for the path.
@@ -96,9 +97,9 @@ def animate_path(
                 blocked,
                 entry,
                 exit_pt,
+                design,
                 True,
-                displayed_cells,
-                design
+                displayed_cells
             )
 
             print(result)

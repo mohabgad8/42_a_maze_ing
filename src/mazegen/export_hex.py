@@ -45,10 +45,10 @@ def grid_as_hex_lines(grid: list[list[int]]) -> list[str]:
     return lines
 
 
-def print_grid_hex(self) -> None:
-    """Print the maze in hex."""
-    for line in self.grid_as_hex_lines():
-        print(line)
+# def print_grid_hex(self) -> None:
+#     """Print the maze in hex."""
+#     for line in self.grid_as_hex_lines():
+#         print(line)
 
 
 def write_output(filename: str, grid: list[list[int]],
