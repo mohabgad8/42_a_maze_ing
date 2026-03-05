@@ -32,7 +32,10 @@ def get_config(filename: str) -> dict[str, str]:
                 if not key or not value:
                     raise ValueError(
                         f"Error: key or value missing for '{line}'")
-                config[key.strip().lower()] = value.strip()
+                if key.strip().lower() not in config:
+                    config[key.strip().lower()] = value.strip()
+                else:
+                    continue
 
         missing = required_keys - config.keys()
         if missing:
