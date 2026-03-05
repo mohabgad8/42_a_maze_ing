@@ -5,8 +5,7 @@
         * Parsing the data received
         * Validation of the different data
 """
-import config_helper as helper
-import sys
+from . import config_helper as helper
 
 
 def get_config(filename: str) -> dict[str, str]:
@@ -124,13 +123,10 @@ def get_valid_config(
     else:
         raise ValueError("Error: perfect's parameter is invalid !")
 
+    if config.get('seed'):
+        try:
+            valid_config['seed'] = int(config['seed'])
+        except ValueError:
+            raise ValueError("Error: seed must be an integer !")
+
     return valid_config
-
-
-if __name__ == "__main__":
-    try:
-        config = get_config("config.txt")
-        valid_config = get_valid_config(config)
-    except Exception as e:
-        print(f"{e}")
-        sys.exit(1)
