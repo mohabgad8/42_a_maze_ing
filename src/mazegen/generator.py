@@ -364,7 +364,7 @@ class MazeGenerator:
                     self.open_between(x, y, new_x, new_y)
                     opened += 1
 
-    def generate(self, max_attempts=200) -> list[list[int]]:
+    def generate(self, max_attempts: int = 200) -> list[list[int]]:
         """Generate maze.
 
         Args:

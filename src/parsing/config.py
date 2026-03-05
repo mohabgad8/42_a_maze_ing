@@ -19,7 +19,7 @@ def get_config(filename: str) -> dict[str, str]:
     try:
         with open(filename, 'r') as file:
             for line in file:
-                line: str = line.strip()
+                line = line.strip()
 
                 if not line or line.startswith('#'):
                     continue

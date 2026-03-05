@@ -2,6 +2,7 @@ import os
 import sys
 import random
 import time
+from typing import cast
 from src.mazegen import MazeGenerator
 from src.mazegen.ascii_display import to_ascii, animate_path
 from src.mazegen.export_hex import write_output, path_to_letters
@@ -16,17 +17,19 @@ def main() -> None:
         if len(sys.argv) != 2:
             raise ValueError("Usage: python3 a_maze_ing.py <config_file>")
 
-        parsed_config: dict = get_config(sys.argv[1])
-        config: dict = get_valid_config(parsed_config)
-        width: int = config['width']
-        height: int = config['height']
-        entry: tuple = config['entry']
-        exit_pt: tuple = config['exit']
-        perfect: bool = config['perfect']
+        parsed_config: dict[str, str] = get_config(sys.argv[1])
+        config_value = str | bool | int | tuple[int, int]
+        config: dict[str, config_value] = get_valid_config(parsed_config)
+        width: int = cast(int, config['width'])
+        height: int = cast(int, config['height'])
+        entry: tuple[int, int] = cast(tuple[int, int], config['entry'])
+        exit_pt: tuple[int, int] = cast(tuple[int, int], config['exit'])
+        perfect: bool = cast(bool, config['perfect'])
+        output_file: str = cast(str, config['output_file'])
         if config.get('seed'):
-            seed: int = config['seed']
+            seed: int = cast(int, config['seed'])
         else:
-            seed: int = random.randint(0, 500)
+            seed = random.randint(0, 999999)
 
         show_path: bool = False
         maze: MazeGenerator = MazeGenerator(
@@ -38,7 +41,7 @@ def main() -> None:
         letters: str = path_to_letters(path)
 
         write_output(
-            config['output_file'],
+            output_file,
             maze.grid,
             maze.entry,
             maze.exit,
@@ -46,14 +49,15 @@ def main() -> None:
 
         while True:
             os.system("clear")
-            # print("Seed:", seed)
+            print("Seed:", seed)
             print(to_ascii(
                 grid=maze.grid,
                 blocked=maze.blocked,
                 entry=maze.entry,
                 exit=maze.exit,
+                design=designs[design_index],
                 show_path=show_path,
-                path_cells=path_cells, design=designs[design_index]))
+                path_cells=path_cells))
 
             print(
                 "=== A-Maze-ing ===\n"
@@ -70,7 +74,7 @@ def main() -> None:
 
             elif choice == "1":
                 seed = random.randint(0, 500)
-                maze: MazeGenerator = MazeGenerator(
+                maze = MazeGenerator(
                     width, height, entry, exit_pt, perfect, seed)
                 maze.generate()
 
@@ -92,8 +96,8 @@ def main() -> None:
                         maze.blocked,
                         maze.entry,
                         maze.exit,
-                        ordered,
-                        designs[design_index]
+                        designs[design_index],
+                        ordered
                     )
 
                     path_cells = path_to_cells(maze.entry, path)
