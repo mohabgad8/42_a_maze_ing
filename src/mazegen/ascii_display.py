@@ -1,5 +1,5 @@
-"""Diplay in ascii."""
-
+"""Display in ascii."""
+import time
 from .maze_utils import N, E, S, W, has_wall
 from typing import Optional
 
@@ -69,3 +69,37 @@ def to_ascii(grid: list[list[int]],
                 bot += "   " + design["corner"]
         lines.append(bot)
     return "\n".join(lines)
+
+
+def animate_path(
+    grid: list[list[int]],
+    blocked: set[tuple[int, int]],
+    entry: tuple[int, int],
+    exit_pt: tuple[int, int],
+    path_ordered: Optional[list[tuple[int, int]]] = None,
+    design: dict[str, str] = None
+) -> None:
+    """
+    Creates an animation for the path.
+    """
+
+    displayed_cells: set[tuple[(int, int)]] = set()
+
+    for step in path_ordered:
+        displayed_cells.add(step)
+
+        result = to_ascii(
+            grid,
+            blocked,
+            entry,
+            exit_pt,
+            True,
+            displayed_cells,
+            design
+        )
+
+        print(result)
+
+        n_lines = result.count("\n") + 1
+        print(f"\033[{n_lines}A", end="", flush=True)
+        time.sleep(0.05)
