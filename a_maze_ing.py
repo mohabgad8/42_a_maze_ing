@@ -106,6 +106,7 @@ def main() -> None:
                 else:
                     path_cells = None
             elif choice == "3":
+                os.system("clear")
                 design_index = (design_index + 1) % len(designs)
             else:
                 print("Incorrect choice ! Try again...(1-4)")
