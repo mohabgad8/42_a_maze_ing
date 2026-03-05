@@ -95,3 +95,21 @@ def path_to_cells(entry: tuple[int, int], path: list[int]) -> set[tuple[int]]:
         y += DIR_Y[d]
         cells.add((x, y))
     return cells
+
+
+def path_to_ordered_cells(
+    entry: tuple[int, int],
+    path: list[int]
+) -> list[tuple[int, int]]:
+    """
+    Convert the path in coordinates.
+    Returns a list instead of a set to be able to stop at each case.
+    """
+
+    x, y = entry
+    cells = [(x, y)]
+    for d in path:
+        x += DIR_X[d]
+        y += DIR_Y[d]
+        cells.append((x, y))
+    return cells
