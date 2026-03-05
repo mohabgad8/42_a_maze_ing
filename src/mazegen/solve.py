@@ -78,7 +78,8 @@ def solve(grid: list[list[int]],
     return []
 
 
-def path_to_cells(entry: tuple[int, int], path: list[int]) -> set[tuple[int]]:
+def path_to_cells(
+        entry: tuple[int, int], path: list[int]) -> set[tuple[int, int]]:
     """Convert the path in coordinates.
 
     Args:
