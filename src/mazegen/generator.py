@@ -331,6 +331,15 @@ class MazeGenerator:
 
     def _add_extra_connections(self) -> None:
         """Add connections to create imperfect maze."""
+        # if self.width <= 5 or self.height <= 5:
+        #     cell = self.grid[0][0]
+        #     next_cell = self.grid[0][1]
+        #     direction = # RIGHT
+        #     if # not cell.has_wall(RIGHT):
+        #         next_cell = self.grid[1][0]
+        #         direction = # BOTTOM
+        #     # self.remove_wall(cell, next_cell, direction)
+        # else:
         opened = 0
         cells_to_open = self.width * self.height // 10
         cells = [
