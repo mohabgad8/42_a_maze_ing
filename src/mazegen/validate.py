@@ -108,7 +108,7 @@ def _validate_outer_borders(grid: list[list[int]]) -> list[str]:
     return errors
 
 
-def _is_open_3x3(grid: list[list[int]], top_x: int, top_y: int) -> bool:
+def is_open_3x3(grid: list[list[int]], top_x: int, top_y: int) -> bool:
     """Check if all the interns wall are open (E and S).
 
     Args:
@@ -154,7 +154,7 @@ def _validate_no_open_3x3(grid: list[list[int]]) -> list[str]:
 
     for top_y in range(height - 2):
         for top_x in range(width - 2):
-            if _is_open_3x3(grid, top_x, top_y):
+            if is_open_3x3(grid, top_x, top_y):
                 errors.append("Open 3x3 area detected at top-left "
                               f"({top_x},{top_y})")
                 return errors
