@@ -4,7 +4,7 @@
 
 import random
 from typing import Optional
-from .validate import validate_maze, is_perfect_maze
+from .validate import validate_maze, is_perfect_maze, is_open_3x3
 from .maze_utils import (
     N, E, S, W, DIR_X, DIR_Y, OPP_WALL,
     has_wall, open_wall, get_direction_between,
@@ -32,10 +32,12 @@ class MazeGenerator:
         [0, 0, 1, 0, 1, 1, 1]
     ]
 
-    def __init__(self, width: int, height: int, seed: int = 0,
+    def __init__(self, width: int, height: int,
                  entry: Optional[tuple[int, int]] = None,
                  exit: Optional[tuple[int, int]] = None,
-                 perfect: bool = False, start_x: int = 0,
+                 perfect: bool = False,
+                 seed: int = 0,
+                 start_x: int = 0,
                  start_y: int = 0) -> None:
         """Initialize class.
 
@@ -62,7 +64,7 @@ class MazeGenerator:
         self.start_x = start_x
         self.start_y = start_y
 
-        self.validate_params() 
+        self.validate_params()
 
         self.rand_num_gen = random.Random(seed)
         self.grid: list[list[int]] = self.make_grid()
@@ -216,30 +218,6 @@ class MazeGenerator:
         """
         return not has_wall(self.grid[y][x], S)
 
-    def is_open_3x3(self, top_x: int, top_y: int) -> bool:
-        """Check if open 3x3.
-
-        Args:
-            top_x (int): start x for check
-            top_y (int): start y for check
-
-        Returns:
-            bool: True or False
-        """
-        if top_x < 0 or top_y < 0:
-            return False
-        if top_x + 2 >= self.width or top_y + 2 >= self.height:
-            return False
-        for yy in range(top_y, top_y + 3):
-            for xx in range(top_x, top_x + 2):
-                if not self.wall_open_hor(xx, yy):
-                    return False
-        for yy in range(top_y, top_y + 2):
-            for xx in range(top_x, top_x + 3):
-                if not self.wall_open_ver(xx, yy):
-                    return False
-        return True
-
     def would_create_open_3x3(self, x: int, y: int, new_x: int, new_y: int
                               ) -> bool:
         """Check if action would create 3x3.
@@ -265,7 +243,7 @@ class MazeGenerator:
         created = False
         for top_y in range(min_y - 2, min_y + 1):
             for top_x in range(min_x - 2, min_x + 1):
-                if self.is_open_3x3(top_x, top_y):
+                if is_open_3x3(self.grid, top_x, top_y):
                     created = True
                     break
             if created:
