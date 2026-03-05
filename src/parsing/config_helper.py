@@ -45,7 +45,4 @@ def verify_size(width: int, height: int) -> bool:
         - True or False based on the verification of size.
     """
 
-    min_width: int = 5
-    min_height: int = 5
-
-    return width >= min_width and height >= min_height
+    return width > 0 and height > 0 and width * height >= 2
