@@ -1,0 +1,136 @@
+"""
+    This file contains everything in relation with the config.txt file.
+    Meaning:
+    --------
+        * Parsing the data received
+        * Validation of the different data
+"""
+import config_helper as helper
+import sys
+
+
+def get_config(filename: str) -> dict[str, str]:
+    """
+        Parse config.txt and returns a dict containing different data.
+    """
+
+    config: dict[str, str] = {}
+    required_keys: set[str] = {
+        'width', 'height', 'entry', 'exit', 'output_file', 'perfect'}
+    try:
+        with open(filename, 'r') as file:
+            for line in file:
+                line: str = line.strip()
+
+                if not line or line.startswith('#'):
+                    continue
+
+                if '=' not in line:
+                    raise ValueError(
+                        f"Error: '{line}' is invalid: doesn't contain '='")
+
+                key, value = line.split('=', 1)
+                if not key or not value:
+                    raise ValueError(
+                        f"Error: key or value missing for '{line}'")
+                config[key.strip().lower()] = value.strip()
+
+        missing = required_keys - config.keys()
+        if missing:
+            raise ValueError(f"Error: missing parameter {missing}")
+        return config
+    except FileNotFoundError:
+        raise FileNotFoundError(f"Error: file '{filename}' not found")
+    except PermissionError:
+        raise PermissionError(f"Error: can't have access to '{filename}'")
+    except OSError:
+        raise OSError(f"Error: something went wrong with '{filename}'")
+
+
+def get_valid_config(
+        config: dict[str, str]) -> dict[
+            str, str | bool | int | tuple[int, int]]:
+    """
+        Manipulates the parsed config dict and verifies if width/height/entry
+        and exit are correctly formatted. Once the verifications are made,
+        it will return a dict containing the different data.
+
+        Validation key points:
+        ----------------------
+        * Width and height aren't negatives. They are also within
+            the limits of the maze. Which means: not too small to be able
+            to contain the "42" logo.
+        * Entry and exit are within the actual maze and not beyond limits.
+            They must be different.
+    """
+
+    if not config:
+        raise ValueError("Error: Something went wrong with parsed config.")
+
+    valid_config: dict[
+        str, str | bool | int | tuple[int, int]] = {}
+    # Verify if width and height are correct
+    try:
+        width: int = int(config['width'])
+        height: int = int(config['height'])
+
+    except ValueError:
+        raise ValueError("Error: Measurements are incorrect !")
+    except KeyError:
+        raise KeyError("Error: Key doesn't exist")
+
+    # In case 42 logo is 5x5
+    if not helper.verify_size(width, height):
+        raise ValueError("Error: Maze is too small fort the '42' logo.")
+
+    valid_config['width'] = width
+    valid_config['height'] = height
+
+    # Get entry's coord.
+    try:
+        entry_x, entry_y = helper.divide_coords(config['entry'])
+    except ValueError as e:
+        raise ValueError(f"{e}")
+
+    if not helper.verify_coords(entry_x, entry_y, width, height):
+        raise ValueError("Error: entry's coordinates are invalid !")
+    valid_config['entry'] = (entry_x, entry_y)
+
+    # Get exit's coord.
+    try:
+        exit_x, exit_y = helper.divide_coords(config['exit'])
+    except ValueError as e:
+        raise ValueError(f"{e}")
+
+    if not helper.verify_coords(exit_x, exit_y, width, height):
+        raise ValueError("Error: exit's coordinates are invalid !")
+    valid_config['exit'] = (exit_x, exit_y)
+
+    # Check if entry and exit are similar
+    if entry_x == exit_x and entry_y == exit_y:
+        raise ValueError("Error: Entry and Exit can't be identical !")
+
+    # Output_file
+    try:
+        valid_config['output_file'] = config['output_file']
+    except KeyError:
+        raise KeyError("Error: output_file key is missing in config")
+
+    # Perfect
+    if config['perfect'].lower() == 'true':
+        valid_config['perfect'] = True
+    elif config['perfect'].lower() == 'false':
+        valid_config['perfect'] = False
+    else:
+        raise ValueError("Error: perfect's parameter is invalid !")
+
+    return valid_config
+
+
+if __name__ == "__main__":
+    try:
+        config = get_config("config.txt")
+        valid_config = get_valid_config(config)
+    except Exception as e:
+        print(f"{e}")
+        sys.exit(1)
