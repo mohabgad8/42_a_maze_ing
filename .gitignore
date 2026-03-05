@@ -4,3 +4,7 @@ src/mazegen_42.egg-info
 tests/
 .DS_Store
 .idea
+src/.DS_Store
+maze.txt
+src/mazegen/__pycache__/
+src/parsing/__pycache__/

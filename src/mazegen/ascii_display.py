@@ -83,7 +83,7 @@ def animate_path(
     Creates an animation for the path.
     """
 
-    displayed_cells: set[tuple[(int, int)]] = set()
+    displayed_cells: set[tuple[int, int]] = set()
 
     print("\033[?25l", end="", flush=True)
 

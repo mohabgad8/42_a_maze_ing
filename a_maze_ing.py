@@ -33,7 +33,7 @@ def main() -> None:
             width, height, entry, exit_pt, perfect, seed)
         maze.generate()
         path: list[int] = solve(maze.grid, maze.blocked, maze.entry, maze.exit)
-        path_cells: set[tuple[int]] = path_to_cells(
+        path_cells: set[tuple[int, int]] | None = path_to_cells(
             maze.entry, path) if show_path else None
         letters: str = path_to_letters(path)
 
@@ -46,7 +46,6 @@ def main() -> None:
 
         while True:
             os.system("clear")
-            print("\n" * 2)
             # print("Seed:", seed)
             print(to_ascii(
                 grid=maze.grid,
@@ -81,6 +80,7 @@ def main() -> None:
                 os.system("clear")
                 continue
             elif choice == "2":
+                os.system("clear")
                 show_path = not show_path
 
                 if show_path:
