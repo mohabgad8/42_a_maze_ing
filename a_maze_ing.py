@@ -78,11 +78,13 @@ def main() -> None:
                 path = solve(maze.grid, maze.blocked, maze.entry, maze.exit)
                 path_cells = path_to_cells(
                     maze.entry, path) if show_path else None
-
+                os.system("clear")
+                continue
             elif choice == "2":
                 show_path = not show_path
 
                 if show_path:
+                    os.system("clear")
                     path = solve(
                         maze.grid, maze.blocked, maze.entry, maze.exit)
                     ordered = path_to_ordered_cells(maze.entry, path)
@@ -95,7 +97,7 @@ def main() -> None:
                         ordered,
                         designs[design_index]
                     )
-
+                    os.system("clear")
                     path_cells = path_to_cells(maze.entry, path)
                 else:
                     path_cells = None

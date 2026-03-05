@@ -332,7 +332,7 @@ class MazeGenerator:
     def _add_extra_connections(self) -> None:
         """Add connections to create imperfect maze."""
         opened = 0
-        cells_to_open = self.width * self.height // 10
+        cells_to_open = self.width * self.height // 7
         cells = [
             (x, y)
             for y in range(self.height)
