@@ -73,7 +73,7 @@ def main() -> None:
                 break
 
             elif choice == "1":
-                seed = random.randint(0, 500)
+                seed = random.randint(0, 999999)
                 maze = MazeGenerator(
                     width, height, entry, exit_pt, perfect, seed)
                 maze.generate()
