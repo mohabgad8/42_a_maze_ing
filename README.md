@@ -280,22 +280,23 @@ After calling `maze.generate()`:
 | Login   |                      Role                             |
 |---------|-------------------------------------------------------|
 | `mgad`  |Documentation, parsing, validation, packaging, Makefile, README, merging and debugging
-|`mghitta`| Research, DFS, BFS, second validation, toml and output
+|`mghitta`| Research, DFS, BFS, constraints 3x3, adding pattern 42, output.txt, ascii display, toml
 
 ### Planning
 
 **Anticipated planning:**
-- Day 1-2: Documentation
-- Day 3: Parsing and MazeGenerator creation
-- Day 4: Validation
-- Day 5: BFS solver
-- Day 6: Parsing and generator tests
+- Day 1: Documentation
+- Day 2: MazeGenerator creation
+- Day 3: Parsing, DFS and BFS implementation
+- Day 4: constraints (no open 3x3, check perfect_maze, check opening wall, etc...)
+- Day 5: Validation, output.txt, adding 42 pattern
+- Day 6: Ascii display, Parsing and generator tests
 - Day 7: Packaging, Makefile and README
 - Day 8: Merging and solving conflicts
 - Day 9: Final tests
 
 **How it evolved:**
-The implementation of the different algorithms was quite simple due to the various documentation consulted. What took more time than planned was the parsing and validation parts for both config.txt and the generator.
+The implementation of the different algorithms was quite simple due to the various documentation consulted. What took more time than planned was the parsing and validation parts for both config.txt and the generator and the gestion of the contraints (open no 3x3, perfect/ not perfect, check opening wall).
 
 ### What worked well
 
@@ -344,5 +345,9 @@ The implementation of the different algorithms was quite simple due to the vario
 - **Debugging:** Identifying issues in the ANSI cursor positioning logic for the animation (the `\033[{n}A` escape sequence to move the cursor up by N lines).
 - **Type annotations:** Reviewing function signatures to ensure mypy compliance, particularly around `Optional` types and generic containers.
 - **README:** Assistance in structuring and writing this README to meet the subject's requirements.
+
+**ChatGPT (OpenAI)**
+
+- **Test** Provides tests for checking the constraints 3x3.
 
 ---

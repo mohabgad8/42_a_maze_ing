@@ -331,38 +331,35 @@ class MazeGenerator:
 
     def _add_extra_connections(self) -> None:
         """Add connections to create imperfect maze."""
-        # if self.width <= 5 or self.height <= 5:
-        #     cell = self.grid[0][0]
-        #     next_cell = self.grid[0][1]
-        #     direction = # RIGHT
-        #     if # not cell.has_wall(RIGHT):
-        #         next_cell = self.grid[1][0]
-        #         direction = # BOTTOM
-        #     # self.remove_wall(cell, next_cell, direction)
-        # else:
-        opened = 0
-        cells_to_open = self.width * self.height // 7
-        cells = [
-            (x, y)
-            for y in range(self.height)
-            for x in range(self.width)
-            if (x, y) not in self.blocked
-        ]
-        tries = 0
-        max_tries = cells_to_open * 50
-        while opened < cells_to_open and tries < max_tries:
-            tries += 1
-            x, y = self.rand_num_gen.choice(cells)
-            d = self.rand_num_gen.choice((N, E, S, W))
+        if self.width <= 5 or self.height <= 5:
+            if not has_wall(self.grid[0][0], E):
+                self.open_between(0, 0, 0, 1)
+            if not has_wall(self.grid[0][0], S):
+                self.open_between(0, 0, 1, 0)
+        else:
+            opened = 0
+            cells_to_open = self.width * self.height // 10
+            cells = [
+                (x, y)
+                for y in range(self.height)
+                for x in range(self.width)
+                if (x, y) not in self.blocked
+            ]
+            tries = 0
+            max_tries = cells_to_open * 50
+            while opened < cells_to_open and tries < max_tries:
+                tries += 1
+                x, y = self.rand_num_gen.choice(cells)
+                d = self.rand_num_gen.choice((N, E, S, W))
 
-            new_x = x + DIR_X[d]
-            new_y = y + DIR_Y[d]
-            if not self.in_bounds(new_x, new_y):
-                continue
-            if has_wall(self.grid[y][x], d):
-                if not self.would_create_open_3x3(x, y, new_x, new_y):
-                    self.open_between(x, y, new_x, new_y)
-                    opened += 1
+                new_x = x + DIR_X[d]
+                new_y = y + DIR_Y[d]
+                if not self.in_bounds(new_x, new_y):
+                    continue
+                if has_wall(self.grid[y][x], d):
+                    if not self.would_create_open_3x3(x, y, new_x, new_y):
+                        self.open_between(x, y, new_x, new_y)
+                        opened += 1
 
     def generate(self, max_attempts: int = 200) -> list[list[int]]:
         """Generate maze.
