@@ -36,7 +36,7 @@ class MazeGenerator:
     def __init__(self, width: int, height: int,
                  entry: Optional[tuple[int, int]] = None,
                  exit: Optional[tuple[int, int]] = None,
-                 perfect: bool = False,
+                 perfect: bool = True,
                  seed: int = 0,
                  start_x: int = 0,
                  start_y: int = 0) -> None:
@@ -264,7 +264,9 @@ class MazeGenerator:
         pattern_height = len(self.PATTERN_42)
         if self.width < pattern_width + 2 or self.height < pattern_height + 2:
             print("\033[H\033[2J")
-            print("Warning: maze too small to place 42 pattern, skipping", end="", flush=True)
+            print(
+                "Warning: maze too small to place 42 pattern, skipping",
+                end="", flush=True)
             time.sleep(0.8)
             print(".", end="", flush=True)
             time.sleep(0.8)
@@ -344,7 +346,7 @@ class MazeGenerator:
             cells_to_open = self.width * self.height // 5
         else:
             cells_to_open = self.width * self.height // 10
-        opened = 0 
+        opened = 0
         cells = [
             (x, y)
             for y in range(self.height)
