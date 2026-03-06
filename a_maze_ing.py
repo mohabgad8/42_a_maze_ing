@@ -49,7 +49,7 @@ def main() -> None:
 
         while True:
             os.system("clear")
-            print("Seed:", seed)
+            # print("Seed:", seed)
             print(to_ascii(
                 grid=maze.grid,
                 blocked=maze.blocked,
