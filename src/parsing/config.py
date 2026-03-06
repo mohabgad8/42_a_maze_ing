@@ -83,7 +83,7 @@ def get_valid_config(
 
     # In case 42 logo is 5x5
     if not helper.verify_size(width, height):
-        raise ValueError("Error: Maze is too small fort the '42' logo.")
+        raise ValueError("Error: width and height can't be negatives !")
 
     valid_config['width'] = width
     valid_config['height'] = height
