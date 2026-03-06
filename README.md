@@ -338,6 +338,10 @@ The implementation of the different algorithms was quite simple due to the vario
 - [Reading ASCII maze into 2D array — Stack Overflow](https://stackoverflow.com/questions/1541763/reading-in-an-ascii-maze-into-a-2d-array)
 - [Converting characters to hexadecimal in Python — Python Discuss](https://discuss.python.org/t/how-to-convert-character-to-hexadecimal-and-back/25056/6)
 
+### Sharing with students
+
+We exchange a lot with jpik, because we were doing the same part of our project, even if we took different paths to realise it, and also with nmertens for design. Thanks to nthys, pfauveau and b who gives us a very good review (by testing) and advices.
+
 ### AI usage
 
 **Claude (Anthropic)** was used during this project for the following tasks:

@@ -3,6 +3,7 @@
 
 
 import random
+import time
 from typing import Optional
 from .validate import validate_maze, is_perfect_maze, is_open_3x3
 from .maze_utils import (
@@ -262,7 +263,15 @@ class MazeGenerator:
         pattern_width = len(self.PATTERN_42[0])
         pattern_height = len(self.PATTERN_42)
         if self.width < pattern_width + 2 or self.height < pattern_height + 2:
-            print("Warning: maze too small to place 42 pattern, skipping.")
+            print("\033[H\033[2J")
+            print("Warning: maze too small to place 42 pattern, skipping", end="", flush=True)
+            time.sleep(0.8)
+            print(".", end="", flush=True)
+            time.sleep(0.8)
+            print(".", end="", flush=True)
+            time.sleep(0.8)
+            print(".", end="", flush=True)
+            time.sleep(1)
             return 0
         top_x = (self.width - pattern_width) // 2
         top_y = (self.height - pattern_height) // 2
@@ -332,34 +341,31 @@ class MazeGenerator:
     def _add_extra_connections(self) -> None:
         """Add connections to create imperfect maze."""
         if self.width <= 5 or self.height <= 5:
-            if not has_wall(self.grid[0][0], E):
-                self.open_between(0, 0, 0, 1)
-            if not has_wall(self.grid[0][0], S):
-                self.open_between(0, 0, 1, 0)
+            cells_to_open = self.width * self.height // 5
         else:
-            opened = 0
             cells_to_open = self.width * self.height // 10
-            cells = [
-                (x, y)
-                for y in range(self.height)
-                for x in range(self.width)
-                if (x, y) not in self.blocked
-            ]
-            tries = 0
-            max_tries = cells_to_open * 50
-            while opened < cells_to_open and tries < max_tries:
-                tries += 1
-                x, y = self.rand_num_gen.choice(cells)
-                d = self.rand_num_gen.choice((N, E, S, W))
+        opened = 0 
+        cells = [
+            (x, y)
+            for y in range(self.height)
+            for x in range(self.width)
+            if (x, y) not in self.blocked
+        ]
+        tries = 0
+        max_tries = cells_to_open * 50
+        while opened < cells_to_open and tries < max_tries:
+            tries += 1
+            x, y = self.rand_num_gen.choice(cells)
+            d = self.rand_num_gen.choice((N, E, S, W))
 
-                new_x = x + DIR_X[d]
-                new_y = y + DIR_Y[d]
-                if not self.in_bounds(new_x, new_y):
-                    continue
-                if has_wall(self.grid[y][x], d):
-                    if not self.would_create_open_3x3(x, y, new_x, new_y):
-                        self.open_between(x, y, new_x, new_y)
-                        opened += 1
+            new_x = x + DIR_X[d]
+            new_y = y + DIR_Y[d]
+            if not self.in_bounds(new_x, new_y):
+                continue
+            if has_wall(self.grid[y][x], d):
+                if not self.would_create_open_3x3(x, y, new_x, new_y):
+                    self.open_between(x, y, new_x, new_y)
+                    opened += 1
 
     def generate(self, max_attempts: int = 200) -> list[list[int]]:
         """Generate maze.
