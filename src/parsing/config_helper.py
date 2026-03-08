@@ -56,4 +56,3 @@ def out_of_bound_size(width: int, height: int) -> bool:
     """
 
     return width > 30 or height > 30
- 
