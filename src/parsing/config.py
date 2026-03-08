@@ -85,6 +85,9 @@ def get_valid_config(
     if not helper.verify_size(width, height):
         raise ValueError("Error: width and height can't be negatives !")
 
+    if helper.out_of_bound_size(width, height):
+        raise ValueError("Error: width and height can't be bigger than 30 !")
+
     valid_config['width'] = width
     valid_config['height'] = height
 

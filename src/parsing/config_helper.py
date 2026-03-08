@@ -46,3 +46,14 @@ def verify_size(width: int, height: int) -> bool:
     """
 
     return width > 0 and height > 0 and width * height >= 2
+
+
+def out_of_bound_size(width: int, height: int) -> bool:
+    """
+    Verify if width and height are correct and maze is doable.
+    Doable means maze can actually be created in terminal
+    without a visual discomfort.
+    """
+
+    return width > 30 or height > 30
+ 
